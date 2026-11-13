@@ -40,6 +40,14 @@ NTR/
 
 项目仓库：[Alumos/tnr-atlas](https://github.com/Alumos/tnr-atlas)。推送代码后，Actions 自动执行检查并发布 `ghcr.io/alumos/tnr-atlas`，支持 `linux/amd64` 与 `linux/arm64`。
 
+2026-11-14 已发布公开镜像，两种架构的容器运行检查均已通过：[Actions 记录](https://github.com/Alumos/tnr-atlas/actions/runs/43482713322)。`.env.example` 默认固定到本次版本：
+
+```text
+ghcr.io/alumos/tnr-atlas:sha-e392172ae3a537324ea472d3d80041d8fd71e7c5
+```
+
+也可使用 `ghcr.io/alumos/tnr-atlas:latest` 跟随后续发布。完整拉取命令、镜像摘要和两容器编排见部署文档。
+
 开发优先使用官方工具容器，避免在主机安装系统包：
 
 ```bash

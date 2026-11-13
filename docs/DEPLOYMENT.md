@@ -24,7 +24,7 @@
 
 建议初始服务器配置至少 2 核、2 GiB 内存并预留图片磁盘空间。TNR 最多同时转发两个相册；oneimg 解码和压缩高像素图片会占用较多内存，实际容量应根据照片尺寸和并发做服务器端验收。
 
-## 2. 创建 GitHub 仓库与构建镜像
+## 2. 已发布镜像与 GitHub Actions
 
 项目仓库为 [Alumos/tnr-atlas](https://github.com/Alumos/tnr-atlas)。代码推送到 `main` 后，GitHub Actions 自动检查并发布镜像；部署服务器由你在 1Panel 中操作。
 
@@ -37,7 +37,29 @@
 
 触发规则：`main` 分支推送、`v*` 标签、手工运行。PR 仅检查，不推送镜像。镜像地址由仓库名自动生成并转为小写；不会在你的 Mac 或 1Panel 上构建镜像。
 
-本仓库的镜像产物为：
+### 当前可用的镜像地址
+
+2026-11-14 已发布并核验以下 TNR 镜像，支持 `linux/amd64` 和 `linux/arm64`。GHCR 镜像为公开状态，1Panel 可直接拉取，无需登录 GHCR。推荐在 `TNR_IMAGE` 中使用本次验证过的固定提交标签，根目录 `.env.example` 已设置为该版本。
+
+| 用途 | 完整镜像地址 |
+| --- | --- |
+| 本次发布的固定版本（推荐） | `ghcr.io/alumos/tnr-atlas:sha-e392172ae3a537324ea472d3d80041d8fd71e7c5` |
+| 跟随 main 后续发布 | `ghcr.io/alumos/tnr-atlas:latest` |
+| 本次发布的不可变摘要 | `ghcr.io/alumos/tnr-atlas@sha256:e2e401d8e4262a7b186bf99d43cb1e26e8b7bb2f59e6e3683b81278096c93788` |
+| 官方原版 oneimg | `onexru/oneimg-oneimg:latest` |
+
+在部署服务器上也可手工拉取：
+
+```bash
+docker pull ghcr.io/alumos/tnr-atlas:sha-e392172ae3a537324ea472d3d80041d8fd71e7c5
+docker pull onexru/oneimg-oneimg:latest
+```
+
+本次 [GitHub Actions 发布与验证记录](https://github.com/Alumos/tnr-atlas/actions/runs/43482713322) 已全部通过：前后端检查、双架构镜像构建与推送、两种架构的容器运行检查。匿名 GHCR 清单核验确认固定标签和 `latest` 在核验时指向上述同一摘要。后续 `latest` 会随发布变化，固定标签对应应用提交 `e392172ae3a537324ea472d3d80041d8fd71e7c5`；仅补充发布结果的文档提交不会改变该镜像。
+
+### 后续发布规则
+
+工作流继续生成以下镜像标签：
 
 ```text
 ghcr.io/alumos/tnr-atlas:latest
@@ -48,7 +70,7 @@ ghcr.io/alumos/tnr-atlas:sha-完整提交编号
 
 GitHub Actions 使用仓库自带的 `GITHUB_TOKEN`，工作流已声明 `packages: write`，不需要把图床 Token 或任何生产密码上传到 GitHub。若组织策略禁止该权限，需要仓库管理员允许工作流发布 Packages。
 
-第一次发布后，到 GitHub 对应 Package 设置中确认镜像可见性：
+当前 TNR 镜像已确认公开；如果将来更改 Package 可见性或改用其他仓库，需重新确认拉取权限：
 
 - **公开镜像**：1Panel 可直接拉取。
 - **私有镜像**：在 1Panel 的镜像仓库凭据中配置 GHCR 和具有 `read:packages` 权限的凭据。不要把这个凭据写入 Compose 或提交到 Git。
@@ -133,7 +155,7 @@ volumes:
 
 | 变量 | 示例 / 要求 |
 | --- | --- |
-| `TNR_IMAGE` | `ghcr.io/alumos/tnr-atlas:latest`；正式运行建议使用验收后的 `sha-...` 固定标签 |
+| `TNR_IMAGE` | `ghcr.io/alumos/tnr-atlas:sha-e392172ae3a537324ea472d3d80041d8fd71e7c5`；本次已发布并验证的固定版本 |
 | `TNR_PUBLIC_ORIGIN` | `https://cats.example.com`，不带末尾 `/` 和额外路径 |
 | `ONEIMG_PUBLIC_ORIGIN` | `https://img.example.com`，浏览器必须能访问 |
 | `TNR_ACCESS_CODE` | 初始公共访问码，16–72 字节，仅用于空数据库初始化 |

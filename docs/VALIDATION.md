@@ -1,6 +1,20 @@
 # 验证记录
 
-本地核验时间：2026-11-14T02:00:00+08:00。项目仓库为 [Alumos/tnr-atlas](https://github.com/Alumos/tnr-atlas)，CI 与镜像运行结果以 [GitHub Actions](https://github.com/Alumos/tnr-atlas/actions) 为准。
+本地核验时间：2026-11-14T02:00:00+08:00；发布核验日期：2026-11-14（Asia/Taipei）。项目仓库为 [Alumos/tnr-atlas](https://github.com/Alumos/tnr-atlas)。
+
+## 已完成的 GitHub Actions 发布验证
+
+[工作流 43482713322](https://github.com/Alumos/tnr-atlas/actions/runs/43482713322) 全部通过，对应应用提交 `e392172ae3a537324ea472d3d80041d8fd71e7c5`：
+
+- Node 24 环境下的依赖安装、TypeScript、ESLint、前端生产构建和 gzip 预生成通过。
+- Go 1.27 环境下的 race 测试、`go vet` 和后端构建通过。
+- GitHub Runner 构建并推送 `linux/amd64`、`linux/arm64` 镜像；没有在本机或 1Panel 构建部署镜像。
+- 两种架构分别启动已发布的镜像，在只读根文件系统、非 root 用户、移除 capabilities 的条件下完成 SQLite 数据卷初始化、健康检查和页面 HTTP 访问。ARM64 运行使用 QEMU。
+- 使用匿名 GHCR 凭据读取公开镜像清单，确认两种架构均存在，固定标签与 `latest` 在核验时指向相同镜像摘要。
+
+发布地址：`ghcr.io/alumos/tnr-atlas:sha-e392172ae3a537324ea472d3d80041d8fd71e7c5`。
+
+镜像摘要：`sha256:e2e401d8e4262a7b186bf99d43cb1e26e8b7bb2f59e6e3683b81278096c93788`。实际拉取命令和 1Panel 配置已更新到 [部署手册](DEPLOYMENT.md)。
 
 ## 代码检查
 
@@ -16,7 +30,7 @@
 | 生产 Compose 与部署文档中的完整 Compose | 内容一致；仅 tnr/oneimg 两个服务，无 build 字段 |
 | Compose、开发 Compose、GitHub 工作流 YAML | Ruby 标准 YAML 解析通过；尚未执行 Docker Compose 环境校验 |
 
-本机没有 Docker，未安装系统工具。检查使用已有 Node v26.13.0、Go go1.27.3 darwin/arm64，缓存写入 `/tmp`。项目提供 Node 24、Go 1.27 的容器检查流程和 GitHub Actions；这些容器流程仍需在具有 Docker 的环境实际运行。
+本机没有 Docker，未安装系统工具。本地检查使用已有 Node v26.13.0、Go go1.27.3 darwin/arm64，缓存写入 `/tmp`。项目提供 Node 24、Go 1.27 的容器检查流程；上述 GitHub Actions 已完成实际镜像构建及两种架构的容器运行检查，本机未执行 Docker Compose。
 
 测试覆盖：
 
@@ -61,4 +75,4 @@
 
 官方 oneimg 源码已核对，但未在本机运行官方 Docker 镜像。真实镜像的上传配置、目录支持、公开 URL、WebP 输出、缩略图、反向代理、卷权限和服务器容量，应按 [部署手册第 7 节](DEPLOYMENT.md#7-首次验收) 验收。当前没有真实服务器吞吐量或加载速度基准，不能承诺具体响应时间。
 
-GitHub Actions 在 `main` 推送后执行检查并发布 GHCR 镜像；本文的本地检查结果不等同于 CI 或容器检查结果。没有在本机或 1Panel 构建任何部署镜像。
+本次 GitHub Actions 与 TNR 容器检查结果见本文首节。真实官方 oneimg 与 1Panel 环境的联合验收仍需在服务器执行。
