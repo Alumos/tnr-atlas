@@ -42,13 +42,13 @@ NTR/
 
 项目仓库：[Alumos/tnr-atlas](https://github.com/Alumos/tnr-atlas)。推送代码后，Actions 自动执行检查并发布 `ghcr.io/alumos/tnr-atlas`，支持 `linux/amd64` 与 `linux/arm64`。
 
-首个版本 **[v0.1.0](https://github.com/Alumos/tnr-atlas/releases/tag/v0.1.0)** 已发布，[代码检查及双架构运行检查均通过](https://github.com/Alumos/tnr-atlas/actions/runs/43491838328)。`.env.example` 默认使用：
+当前版本 **[v0.1.1](https://github.com/Alumos/tnr-atlas/releases/tag/v0.1.1)** 已发布，[代码检查及双架构运行检查均通过](https://github.com/Alumos/tnr-atlas/actions/runs/43503351727)。此次取消相册 6 张上限，并支持 TNR 转发 3200 万像素以内的原图。`.env.example` 默认使用：
 
 ```text
 ghcr.io/alumos/tnr-atlas:latest
 ```
 
-固定首个版本可使用 `ghcr.io/alumos/tnr-atlas:0.1.0`。使用 `latest` 时，升级只需拉取并重新创建 TNR 容器，不必填写提交编号。完整命令和两容器编排见部署文档。
+固定此次版本可使用 `ghcr.io/alumos/tnr-atlas:0.1.1`。首个版本 v0.1.0 继续保留。使用 `latest` 时，升级只需拉取并重新创建 TNR 容器，不必填写提交编号。完整命令和两容器编排见部署文档。
 
 开发优先使用官方工具容器，避免在主机安装系统包：
 

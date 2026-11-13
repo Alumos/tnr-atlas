@@ -37,24 +37,24 @@
 
 触发规则：`main` 分支推送、`v*` 标签、手工运行。PR 仅检查，不推送镜像。镜像地址由仓库名自动生成并转为小写；不会在你的 Mac 或 1Panel 上构建镜像。
 
-### v0.1.0 镜像地址
+### v0.1.1 镜像地址
 
-首个版本 **v0.1.0 已于 2026-11-14 发布**，提供以下地址。默认使用 `latest`，后续更新无需填写提交编号；在 1Panel 重新拉取镜像并重新创建 TNR 容器即可。
+当前版本 **v0.1.1 已于 2026-11-14 发布**，取消相册 6 张上限，并将 TNR 像素校验提高到 3200 万。默认使用 `latest`；在 1Panel 重新拉取镜像并重新创建 TNR 容器即可。首个版本 v0.1.0 仍可作为历史版本追溯。
 
 | 用途 | 完整镜像地址 |
 | --- | --- |
 | 跟随后续发布（默认） | `ghcr.io/alumos/tnr-atlas:latest` |
-| 固定 v0.1.0 | `ghcr.io/alumos/tnr-atlas:0.1.0` |
+| 固定 v0.1.1 | `ghcr.io/alumos/tnr-atlas:0.1.1` |
 | 官方原版 oneimg | `onexru/oneimg-oneimg:latest` |
 
 ```bash
 docker pull ghcr.io/alumos/tnr-atlas:latest
-# 如需固定首个版本：
-docker pull ghcr.io/alumos/tnr-atlas:0.1.0
+# 如需固定此次版本：
+docker pull ghcr.io/alumos/tnr-atlas:0.1.1
 docker pull onexru/oneimg-oneimg:latest
 ```
 
-版本说明见 [v0.1.0 Release](https://github.com/Alumos/tnr-atlas/releases/tag/v0.1.0)，[本次 GitHub Actions](https://github.com/Alumos/tnr-atlas/actions/runs/43491838328) 的代码检查、双架构构建与运行检查均通过。匿名 GHCR 核验确认 `0.1.0` 与 `latest` 在发布时指向同一镜像，支持 AMD64/ARM64。此次版本摘要为 `sha256:9c1d0f14466281cd0d11014dff84c7302c5393c1e79b0f2969b1cfb195bd2675`，仅供追溯，编排继续使用 `latest` 即可。
+版本说明见 [v0.1.1 Release](https://github.com/Alumos/tnr-atlas/releases/tag/v0.1.1)，[本次 GitHub Actions](https://github.com/Alumos/tnr-atlas/actions/runs/43503351727) 的代码检查、双架构构建与运行检查均通过。匿名 GHCR 核验确认 `0.1.1`、`latest` 与 `sha-bb1c55a16668f2cc9e7e7fa60cd769960569998b` 指向同一镜像，支持 AMD64/ARM64。此次摘要为 `sha256:f5707658f73e954e640e1d97ac27a9ca09eca5d71a69b591945088c0bb4583d3`，仅供追溯，编排继续使用 `latest` 即可。
 
 ### 后续发布规则
 
@@ -65,7 +65,7 @@ ghcr.io/alumos/tnr-atlas:latest
 ghcr.io/alumos/tnr-atlas:sha-完整提交编号
 ```
 
-`main` 推送以及 `v*` 标签发布都会更新 `latest`；`v0.1.0` 标签另外生成 `0.1.0` 镜像标签。每次构建也保留固定提交标签，供排查和回滚使用。
+`main` 推送以及 `v*` 标签发布都会更新 `latest`；例如 `v0.1.1` 标签另外生成 `0.1.1` 镜像标签。每次构建也保留固定提交标签，供排查和回滚使用。
 
 GitHub Actions 使用仓库自带的 `GITHUB_TOKEN`，工作流已声明 `packages: write`，不需要把图床 Token 或任何生产密码上传到 GitHub。若组织策略禁止该权限，需要仓库管理员允许工作流发布 Packages。
 
@@ -155,7 +155,7 @@ volumes:
 
 | 变量 | 示例 / 要求 |
 | --- | --- |
-| `TNR_IMAGE` | `ghcr.io/alumos/tnr-atlas:latest`；如需固定首个版本可填 `ghcr.io/alumos/tnr-atlas:0.1.0` |
+| `TNR_IMAGE` | `ghcr.io/alumos/tnr-atlas:latest`；如需固定此次版本可填 `ghcr.io/alumos/tnr-atlas:0.1.1` |
 | `TNR_PUBLIC_ORIGIN` | `https://cats.example.com`，不带末尾 `/` 和额外路径 |
 | `ONEIMG_PUBLIC_ORIGIN` | `https://img.example.com`，不带额外路径，浏览器必须能访问；同时传给 TNR 用于补全相对图片路径、传给 oneimg 的 `APP_URL` |
 | `TNR_ACCESS_CODE` | 初始公共访问码，16–72 字节，仅用于空数据库初始化 |
@@ -331,7 +331,7 @@ Token 到期时已保存照片仍可访问，但新增上传可能返回 401。T
 
 ### 更新
 
-在 GitHub Actions 构建通过后，`TNR_IMAGE=ghcr.io/alumos/tnr-atlas:latest` 保持不变，在 1Panel 重新拉取镜像并重新创建 `tnr`。只点击「重启」不会拉取新镜像。全部数据卷继续保留；oneimg 无需随 TNR 更新。使用版本标签的部署，可将 `0.1.0` 改为之后发布的新版本号。
+在 GitHub Actions 构建通过后，`TNR_IMAGE=ghcr.io/alumos/tnr-atlas:latest` 保持不变，在 1Panel 重新拉取镜像并重新创建 `tnr`。只点击「重启」不会拉取新镜像。全部数据卷继续保留；oneimg 无需随 TNR 更新。使用版本标签的部署，此次可将 `0.1.0` 改为 `0.1.1`。
 
 ```bash
 docker compose pull tnr
@@ -342,7 +342,7 @@ docker compose up -d --no-deps tnr
 
 ### 回滚
 
-把 `TNR_IMAGE` 改回之前验证过的版本标签或提交标签并重新创建 TNR。升级前先备份；本次 `v0.1.0` 通过新增 `neutered_at` 列保存选填绝育日期，不删除旧列或历史数据。更早的镜像不显示日期；未来版本涉及其他数据库迁移时，应先核对对应版本是否支持回退。
+把 `TNR_IMAGE` 改回之前验证过的版本标签或提交标签并重新创建 TNR。升级前先备份；`v0.1.1` 没有新增数据库结构迁移，但旧版会拒绝编辑保存超过 6 张照片的相册。`v0.1.0` 通过新增 `neutered_at` 列保存选填绝育日期，不删除旧列或历史数据。更早的镜像不显示日期；未来版本涉及其他数据库迁移时，应先核对对应版本是否支持回退。
 
 ### 一致性备份
 

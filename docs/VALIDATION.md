@@ -2,7 +2,13 @@
 
 本地核验时间：2026-11-14T02:00:00+08:00；发布核验日期：2026-11-14（Asia/Taipei）。项目仓库为 [Alumos/tnr-atlas](https://github.com/Alumos/tnr-atlas)。
 
-## v0.1.0 GitHub Actions 发布验证
+## v0.1.1 GitHub Actions 发布验证
+
+[`v0.1.1` 标签工作流 43503351727](https://github.com/Alumos/tnr-atlas/actions/runs/43503351727) 全部通过，对应应用提交 `bb1c55a16668f2cc9e7e7fa60cd769960569998b`。前后端检查、AMD64/ARM64 镜像构建推送，以及两种架构的只读、非 root 运行检查均成功。重复的 main 工作流已取消，避免并行更新 latest。
+
+匿名 GHCR 核验确认 `latest`、`0.1.1` 与提交标签指向 `sha256:f5707658f73e954e640e1d97ac27a9ca09eca5d71a69b591945088c0bb4583d3`，两种架构均存在。默认地址为 `ghcr.io/alumos/tnr-atlas:latest`，固定此次版本为 `ghcr.io/alumos/tnr-atlas:0.1.1`。版本说明见 [v0.1.1 Release](https://github.com/Alumos/tnr-atlas/releases/tag/v0.1.1)。下面保留 v0.1.0 历史发布核验；其 latest 摘要已由此次发布取代。
+
+## 历史 v0.1.0 GitHub Actions 发布验证
 
 [`v0.1.0` 标签工作流 43491838328](https://github.com/Alumos/tnr-atlas/actions/runs/43491838328) 全部通过，对应应用提交 `eb4b6f8453a6b49d44192cdf67df555933c1a430`：
 
