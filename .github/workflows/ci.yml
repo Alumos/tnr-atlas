@@ -54,7 +54,7 @@ jobs:
         with:
           images: ${{ steps.image.outputs.name }}
           tags: |
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
             type=sha,prefix=sha-,format=long
             type=semver,pattern={{version}}
       - uses: docker/build-push-action@v7.4.0
@@ -81,6 +81,7 @@ jobs:
               --mount "type=volume,src=${container}-data,dst=/app/data" \
               -e TNR_ACCESS_CODE=ci-only-access-code-123456 \
               -e TNR_ADMIN_PASSWORD=ci-only-admin-password-123456 \
+              -e ONEIMG_PUBLIC_ORIGIN=https://images.example.test \
               -e PUBLIC_ORIGIN=http://localhost:8081 "$platform_image"
             ready=false
             for attempt in $(seq 1 30); do

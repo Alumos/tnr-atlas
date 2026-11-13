@@ -10,6 +10,7 @@ services:
       TNR_ACCESS_CODE: ${TNR_ACCESS_CODE:?请设置初始公共访问码}
       TNR_ADMIN_PASSWORD: ${TNR_ADMIN_PASSWORD:?请设置独立的管理员密码}
       ONEIMG_BASE_URL: http://oneimg:8080
+      ONEIMG_PUBLIC_ORIGIN: ${ONEIMG_PUBLIC_ORIGIN:?请设置图床公开访问地址}
       ONEIMG_TOKEN: ${ONEIMG_TOKEN:-}
       ONEIMG_FOLDER_ID: ${ONEIMG_FOLDER_ID:-0}
     volumes:

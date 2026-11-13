@@ -21,7 +21,9 @@ const server = http.createServer(async (req, res) => {
       if (!file || typeof file === 'string') { res.writeHead(400).end(); return }
       const id = ++next
       await writeFile(join(dir, `${id}-${basename(file.name)}`), Buffer.from(await file.arrayBuffer()))
-      res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify({ code: 200, data: { files: [{ success: true, id, folder_id: Number(form.get('folder_id') || 0), mime_type: 'image/webp', width: 300, height: 300, url: `http://127.0.0.1:8091/images/${id}.webp`, thumbnail_url: `http://127.0.0.1:8091/images/${id}-thumb.webp` }] } }))
+      // Official local-storage uploads return relative paths. Configure TNR with
+      // ONEIMG_PUBLIC_ORIGIN=http://127.0.0.1:8091 when using this test double.
+      res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify({ code: 200, data: { files: [{ success: true, id, folder_id: Number(form.get('folder_id') || 0), mime_type: 'image/webp', width: 300, height: 300, url: `/images/${id}.webp`, thumbnail_url: `/images/${id}-thumb.webp` }] } }))
     } else if (req.method === 'GET' && /^\/images\/\d+(-thumb)?\.webp$/.test(req.url || '')) {
       res.writeHead(200, { 'content-type': 'image/webp', 'cache-control': 'public,max-age=3600' }).end(fixture)
     } else res.writeHead(404).end()

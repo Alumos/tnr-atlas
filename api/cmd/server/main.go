@@ -39,6 +39,11 @@ func main() {
 		slog.Error(err.Error())
 		os.Exit(1)
 	}
+	imageOrigin := os.Getenv("ONEIMG_PUBLIC_ORIGIN")
+	if err := app.ValidateImagePublicOrigin(imageOrigin); err != nil {
+		slog.Error(err.Error())
+		os.Exit(1)
+	}
 	path := env("DATABASE_PATH", "data/tnr.db")
 	if err := os.MkdirAll(filepath.Dir(path), 0750); err != nil {
 		slog.Error("data directory unavailable")
@@ -59,6 +64,7 @@ func main() {
 		os.Exit(1)
 	}
 	api := app.NewServer(store, app.NewImageHost(host, os.Getenv("ONEIMG_TOKEN")), code, origin)
+	api.Host.PublicOrigin = imageOrigin
 	if raw := os.Getenv("ONEIMG_FOLDER_ID"); raw != "" {
 		id, e := strconv.ParseInt(raw, 10, 64)
 		if e != nil || id < 0 {

@@ -273,7 +273,7 @@ func (s *Server) editCat(w http.ResponseWriter, r *http.Request) {
 	}
 	if err == nil {
 		b, _ := json.Marshal(retained)
-		_, err = tx.ExecContext(r.Context(), "UPDATE cats SET name=?,sex=?,color=?,neutered=?,description=?,uploader=?,photos=? WHERE id=?", c.Name, c.Sex, c.Color, c.Neutered, c.Description, c.Uploader, string(b), id)
+		_, err = tx.ExecContext(r.Context(), "UPDATE cats SET name=?,sex=?,color=?,neutered=?,neutered_at=?,description=?,uploader=?,photos=? WHERE id=?", c.Name, c.Sex, c.Color, c.Neutered, c.NeuteredAt, c.Description, c.Uploader, string(b), id)
 	}
 	if err == nil {
 		before, _ := json.Marshal(old)

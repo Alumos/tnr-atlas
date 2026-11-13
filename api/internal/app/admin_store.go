@@ -98,7 +98,7 @@ func (s *Store) CreateAudited(ctx context.Context, c *Cat, actor string) error {
 		return err
 	}
 	c.CreatedAt = time.Now().UTC().Format(time.RFC3339)
-	res, err := tx.ExecContext(ctx, "INSERT INTO cats(name,sex,color,neutered,description,uploader,photos,created_at,album_key) VALUES(?,?,?,?,?,?,?,?,?)", c.Name, c.Sex, c.Color, c.Neutered, c.Description, c.Uploader, string(photos), c.CreatedAt, c.AlbumKey)
+	res, err := tx.ExecContext(ctx, "INSERT INTO cats(name,sex,color,neutered,description,uploader,photos,created_at,album_key,neutered_at) VALUES(?,?,?,?,?,?,?,?,?,?)", c.Name, c.Sex, c.Color, c.Neutered, c.Description, c.Uploader, string(photos), c.CreatedAt, c.AlbumKey, c.NeuteredAt)
 	if err != nil {
 		return err
 	}

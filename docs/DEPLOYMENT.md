@@ -13,7 +13,7 @@
 
 无需修改或重新构建 oneimg。不部署独立 Node、数据库、图片处理、Nginx 或桥接容器。1Panel 已有的网站反向代理用于配置 HTTPS 域名。
 
-普通 JPEG、PNG 或 WebP 图片从浏览器提交给 Go，校验后按原始字节上传到 oneimg，每张只上传一次。oneimg 负责压缩、转 WebP 和生成缩略图。浏览器通过 oneimg 返回的公开 URL 读取主图和缩略图，所以图床必须有浏览器可访问的 HTTPS 地址。
+普通 JPEG、PNG 或 WebP 图片从浏览器提交给 Go，校验后按原始字节上传到 oneimg，每张只上传一次。oneimg 负责压缩、转 WebP 和生成缩略图。官方本地存储上传接口可返回 `/uploads/…` 相对路径，TNR 使用 `ONEIMG_PUBLIC_ORIGIN` 补全为浏览器可访问的主图和缩略图地址；已返回的完整 HTTP(S) 地址保持不变。图床必须有浏览器可访问的 HTTPS 地址。
 
 建议准备两个域名，例如：
 
@@ -37,25 +37,24 @@
 
 触发规则：`main` 分支推送、`v*` 标签、手工运行。PR 仅检查，不推送镜像。镜像地址由仓库名自动生成并转为小写；不会在你的 Mac 或 1Panel 上构建镜像。
 
-### 当前可用的镜像地址
+### v0.1.0 镜像地址
 
-2026-11-14 已发布并核验以下 TNR 镜像，支持 `linux/amd64` 和 `linux/arm64`。GHCR 镜像为公开状态，1Panel 可直接拉取，无需登录 GHCR。推荐在 `TNR_IMAGE` 中使用本次验证过的固定提交标签，根目录 `.env.example` 已设置为该版本。
+首个版本号为 `v0.1.0`，正式发布后提供以下地址。默认使用 `latest`，后续更新无需填写提交编号；在 1Panel 重新拉取镜像并重新创建 TNR 容器即可。
 
 | 用途 | 完整镜像地址 |
 | --- | --- |
-| 本次发布的固定版本（推荐） | `ghcr.io/alumos/tnr-atlas:sha-e392172ae3a537324ea472d3d80041d8fd71e7c5` |
-| 跟随 main 后续发布 | `ghcr.io/alumos/tnr-atlas:latest` |
-| 本次发布的不可变摘要 | `ghcr.io/alumos/tnr-atlas@sha256:e2e401d8e4262a7b186bf99d43cb1e26e8b7bb2f59e6e3683b81278096c93788` |
+| 跟随后续发布（默认） | `ghcr.io/alumos/tnr-atlas:latest` |
+| 固定 v0.1.0 | `ghcr.io/alumos/tnr-atlas:0.1.0` |
 | 官方原版 oneimg | `onexru/oneimg-oneimg:latest` |
 
-在部署服务器上也可手工拉取：
-
 ```bash
-docker pull ghcr.io/alumos/tnr-atlas:sha-e392172ae3a537324ea472d3d80041d8fd71e7c5
+docker pull ghcr.io/alumos/tnr-atlas:latest
+# 如需固定首个版本：
+docker pull ghcr.io/alumos/tnr-atlas:0.1.0
 docker pull onexru/oneimg-oneimg:latest
 ```
 
-本次 [GitHub Actions 发布与验证记录](https://github.com/Alumos/tnr-atlas/actions/runs/43482713322) 已全部通过：前后端检查、双架构镜像构建与推送、两种架构的容器运行检查。匿名 GHCR 清单核验确认固定标签和 `latest` 在核验时指向上述同一摘要。后续 `latest` 会随发布变化，固定标签对应应用提交 `e392172ae3a537324ea472d3d80041d8fd71e7c5`；仅补充发布结果的文档提交不会改变该镜像。
+版本发布记录见 [GitHub Releases](https://github.com/Alumos/tnr-atlas/releases)，构建与双架构运行结果见 [GitHub Actions](https://github.com/Alumos/tnr-atlas/actions)。当前公开包可匿名拉取；官方 oneimg 仍需独立完成真实上传验收。
 
 ### 后续发布规则
 
@@ -66,7 +65,7 @@ ghcr.io/alumos/tnr-atlas:latest
 ghcr.io/alumos/tnr-atlas:sha-完整提交编号
 ```
 
-`main` 生成 `latest`；每次发布都有固定提交标签，正式运行建议用 `sha-...` 标签。发布 `v1.0.0` 标签还会生成 `1.0.0` 镜像标签。
+`main` 推送以及 `v*` 标签发布都会更新 `latest`；`v0.1.0` 标签另外生成 `0.1.0` 镜像标签。每次构建也保留固定提交标签，供排查和回滚使用。
 
 GitHub Actions 使用仓库自带的 `GITHUB_TOKEN`，工作流已声明 `packages: write`，不需要把图床 Token 或任何生产密码上传到 GitHub。若组织策略禁止该权限，需要仓库管理员允许工作流发布 Packages。
 
@@ -97,6 +96,7 @@ services:
       TNR_ACCESS_CODE: ${TNR_ACCESS_CODE:?请设置初始公共访问码}
       TNR_ADMIN_PASSWORD: ${TNR_ADMIN_PASSWORD:?请设置独立的管理员密码}
       ONEIMG_BASE_URL: http://oneimg:8080
+      ONEIMG_PUBLIC_ORIGIN: ${ONEIMG_PUBLIC_ORIGIN:?请设置图床公开访问地址}
       ONEIMG_TOKEN: ${ONEIMG_TOKEN:-}
       ONEIMG_FOLDER_ID: ${ONEIMG_FOLDER_ID:-0}
     volumes:
@@ -155,9 +155,9 @@ volumes:
 
 | 变量 | 示例 / 要求 |
 | --- | --- |
-| `TNR_IMAGE` | `ghcr.io/alumos/tnr-atlas:sha-e392172ae3a537324ea472d3d80041d8fd71e7c5`；本次已发布并验证的固定版本 |
+| `TNR_IMAGE` | `ghcr.io/alumos/tnr-atlas:latest`；如需固定首个版本可填 `ghcr.io/alumos/tnr-atlas:0.1.0` |
 | `TNR_PUBLIC_ORIGIN` | `https://cats.example.com`，不带末尾 `/` 和额外路径 |
-| `ONEIMG_PUBLIC_ORIGIN` | `https://img.example.com`，浏览器必须能访问 |
+| `ONEIMG_PUBLIC_ORIGIN` | `https://img.example.com`，不带额外路径，浏览器必须能访问；同时传给 TNR 用于补全相对图片路径、传给 oneimg 的 `APP_URL` |
 | `TNR_ACCESS_CODE` | 初始公共访问码，16–72 字节，仅用于空数据库初始化 |
 | `TNR_ADMIN_PASSWORD` | 独立管理员密码，至少 16 字节，与公共访问码不同 |
 | `ONEIMG_INITIAL_PASSWORD` | oneimg 首次创建管理员时使用的独立强密码 |
@@ -246,6 +246,15 @@ oneimg 站点可设置 `client_max_body_size 12m;`。上面的设置应放在相
 docker compose up -d --no-deps tnr
 ```
 
+如果使用直接填写值、无需 `.env` 的 Compose，`tnr.environment` 中也必须包含图床公开地址，例如：
+
+```yaml
+ONEIMG_BASE_URL: "http://oneimg:8080"
+ONEIMG_PUBLIC_ORIGIN: "https://你的图床域名"
+```
+
+`ONEIMG_BASE_URL` 是 TNR 上传所用的容器内部地址；`ONEIMG_PUBLIC_ORIGIN` 是浏览器读取照片所用的公开地址，两者作用不同。只在 `oneimg` 中设置 `APP_URL`，不会自动给 TNR 设置该变量，也不能保证上传 API 返回完整 URL。
+
 若暂时不设置目录，`ONEIMG_FOLDER_ID=0` 会上传到该用户的未分类区域，唯一文件名仍然有效。设置了非零目录后，TNR 会核验图床返回的 `folder_id`，避免接口版本不兼容时悄悄放错目录。
 
 ### 关于目录和删除
@@ -287,7 +296,9 @@ Token 到期时已保存照片仍可访问，但新增上传可能返回 401。T
 
 ### 猫咪资料和相册
 
-后台可编辑姓名、性别、毛色、绝育状态、描述与公开上传昵称。点击照片可设为封面，至少保留一张照片，也可以追加到最多六张。
+后台可编辑姓名、性别、毛色、绝育状态、绝育日期、描述与公开上传昵称。点击照片可设为封面，至少保留一张照片，也可以追加到最多六张。
+
+选择「已绝育」后可填写 **绝育日期（选填）**，按日历选择实际日期；不知道日期时可留空。日期以 `YYYY-MM-DD` 保存，不含时区和具体时刻。详情显示完整年月日，后台可补录、修改或清空，修改前后值写入审计。改为「未绝育」或「未知」时，后台会清空日期；API 会拒绝状态和日期矛盾的提交。升级自动为旧 SQLite 数据库新增日期列，历史档案保持原有资料、相册和审计，日期初始为空。
 
 添加照片会先保存当前修改，再执行上传。若追加上传失败，之前保存的文字修改仍然有效，界面会显示错误；已上传但未关联的文件可能在图床保留。
 
@@ -318,7 +329,7 @@ Token 到期时已保存照片仍可访问，但新增上传可能返回 401。T
 
 ### 更新
 
-在 GitHub Actions 构建通过后，在 1Panel 将 `TNR_IMAGE` 改为新的固定提交标签，重新拉取并创建 `tnr`。保留全部数据卷。
+在 GitHub Actions 构建通过后，`TNR_IMAGE=ghcr.io/alumos/tnr-atlas:latest` 保持不变，在 1Panel 重新拉取镜像并重新创建 `tnr`。只点击「重启」不会拉取新镜像。全部数据卷继续保留；oneimg 无需随 TNR 更新。使用版本标签的部署，可将 `0.1.0` 改为之后发布的新版本号。
 
 ```bash
 docker compose pull tnr
@@ -329,7 +340,7 @@ docker compose up -d --no-deps tnr
 
 ### 回滚
 
-把 `TNR_IMAGE` 改回之前验证过的提交标签并重新创建 TNR。若未来版本涉及数据库迁移，应先核对对应版本是否支持回退；本初始版本没有已发布的历史迁移。
+把 `TNR_IMAGE` 改回之前验证过的版本标签或提交标签并重新创建 TNR。升级前先备份；本次 `v0.1.0` 通过新增 `neutered_at` 列保存选填绝育日期，不删除旧列或历史数据。更早的镜像不显示日期；未来版本涉及其他数据库迁移时，应先核对对应版本是否支持回退。
 
 ### 一致性备份
 
@@ -365,6 +376,7 @@ docker compose start oneimg tnr
 | 手机 HEIC 无法选择 | 先在设备上导出 JPEG；当前支持 JPEG/PNG/WebP |
 | 文件名没有猫咪前缀 | 打开 oneimg「保存源文件名」，或保留 `{filename}` 模板 |
 | 提示图床未返回 WebP 主图或独立缩略图 | 在 oneimg 开启「图片压缩」「保存 WebP」「缩略图」并保存；检查版本和存储是否支持缩略图；失败时已上传文件会保留 |
+| 图片已转 WebP，但 TNR 提示「图床未返回有效的公开图片 URL」或「图床返回相对路径」 | 这是地址兼容或配置错误，不是超时；升级到支持相对路径的 TNR 镜像，并在 **tnr 服务**中设置 `ONEIMG_PUBLIC_ORIGIN` 为实际 HTTPS 图床地址，然后重新创建 tnr。旧版只接受绝对 URL；失败时档案未保存，图床照片仍保留 |
 | 删除猫咪后图床照片还在 | 这是使用官方原版的预期行为，TNR 不自动删图 |
 | 修改初始公共码环境变量无效 | 已初始化后请到 `/admin` 设置；环境变量不会覆盖持久化设置 |
 | TNR 数据卷写入失败 | 绑定目录权限是否允许 UID 10001；默认命名卷无需额外处理 |

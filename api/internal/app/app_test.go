@@ -133,10 +133,17 @@ func pngBytes(t *testing.T) []byte {
 	return b.Bytes()
 }
 func createCat(t *testing.T, f *fixture, cookie *http.Cookie, photos ...[]byte) *httptest.ResponseRecorder {
+	return createCatFields(t, f, cookie, nil, photos...)
+}
+func createCatFields(t *testing.T, f *fixture, cookie *http.Cookie, fields map[string]string, photos ...[]byte) *httptest.ResponseRecorder {
 	t.Helper()
 	var body bytes.Buffer
 	writer := multipart.NewWriter(&body)
-	for k, v := range map[string]string{"name": "小橘", "sex": "公", "color": "橘猫", "neutered": "未绝育", "description": "社区猫咪", "uploader": "试图冒用的昵称"} {
+	defaults := map[string]string{"name": "小橘", "sex": "公", "color": "橘猫", "neutered": "未绝育", "description": "社区猫咪", "uploader": "试图冒用的昵称"}
+	for k, v := range fields {
+		defaults[k] = v
+	}
+	for k, v := range defaults {
 		_ = writer.WriteField(k, v)
 	}
 	for _, photo := range photos {

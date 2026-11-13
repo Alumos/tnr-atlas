@@ -26,6 +26,7 @@ type Cat struct {
 	Sex         string  `json:"sex"`
 	Color       string  `json:"color"`
 	Neutered    string  `json:"neutered"`
+	NeuteredAt  string  `json:"neuteredAt"`
 	Description string  `json:"description"`
 	Uploader    string  `json:"uploader"`
 	Photos      []Photo `json:"photos"`
@@ -46,6 +47,15 @@ func Open(path string) (*Store, error) {
 		db.Close()
 		return nil, err
 	}
+	// Additive migration keeps existing cats, photos, sessions and audit intact.
+	var hasNeuteredAt int
+	if err = db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('cats') WHERE name='neutered_at'").Scan(&hasNeuteredAt); err == nil && hasNeuteredAt == 0 {
+		_, err = db.Exec("ALTER TABLE cats ADD COLUMN neutered_at TEXT NOT NULL DEFAULT ''")
+	}
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
 	return &Store{db}, nil
 }
 func (s *Store) Close() error { return s.db.Close() }
@@ -61,6 +71,7 @@ func (c *Cat) Validate() error {
 	c.Name = strings.TrimSpace(c.Name)
 	c.Uploader = strings.TrimSpace(c.Uploader)
 	c.Description = strings.TrimSpace(c.Description)
+	c.NeuteredAt = strings.TrimSpace(c.NeuteredAt)
 	if len([]rune(c.Name)) < 1 || len([]rune(c.Name)) > 40 {
 		return fmt.Errorf("猫咪名字需为 1–40 个字")
 	}
@@ -73,6 +84,15 @@ func (c *Cat) Validate() error {
 	if len([]rune(c.Description)) > 2000 {
 		return fmt.Errorf("补充描述最多 2000 个字")
 	}
+	if c.NeuteredAt != "" {
+		date, err := time.Parse("2006-01-02", c.NeuteredAt)
+		if err != nil || date.Year() < 1 || date.Format("2006-01-02") != c.NeuteredAt {
+			return fmt.Errorf("绝育日期需为有效的 YYYY-MM-DD 日期")
+		}
+		if c.Neutered != "已绝育" {
+			return fmt.Errorf("仅已绝育的猫咪可填写绝育日期")
+		}
+	}
 	return nil
 }
 func (s *Store) Create(ctx context.Context, c *Cat) error {
@@ -81,7 +101,7 @@ func (s *Store) Create(ctx context.Context, c *Cat) error {
 		return err
 	}
 	c.CreatedAt = time.Now().UTC().Format(time.RFC3339)
-	res, err := s.db.ExecContext(ctx, "INSERT INTO cats(name,sex,color,neutered,description,uploader,photos,created_at,album_key) VALUES(?,?,?,?,?,?,?,?,?)", c.Name, c.Sex, c.Color, c.Neutered, c.Description, c.Uploader, string(photos), c.CreatedAt, c.AlbumKey)
+	res, err := s.db.ExecContext(ctx, "INSERT INTO cats(name,sex,color,neutered,description,uploader,photos,created_at,album_key,neutered_at) VALUES(?,?,?,?,?,?,?,?,?,?)", c.Name, c.Sex, c.Color, c.Neutered, c.Description, c.Uploader, string(photos), c.CreatedAt, c.AlbumKey, c.NeuteredAt)
 	if err != nil {
 		return err
 	}
@@ -91,14 +111,14 @@ func (s *Store) Create(ctx context.Context, c *Cat) error {
 func scanCat(row interface{ Scan(...any) error }) (Cat, error) {
 	var c Cat
 	var photos string
-	err := row.Scan(&c.ID, &c.Name, &c.Sex, &c.Color, &c.Neutered, &c.Description, &c.Uploader, &photos, &c.CreatedAt, &c.AlbumKey)
+	err := row.Scan(&c.ID, &c.Name, &c.Sex, &c.Color, &c.Neutered, &c.Description, &c.Uploader, &photos, &c.CreatedAt, &c.AlbumKey, &c.NeuteredAt)
 	if err == nil {
 		err = json.Unmarshal([]byte(photos), &c.Photos)
 	}
 	return c, err
 }
 
-const columns = "id,name,sex,color,neutered,description,uploader,photos,created_at,album_key"
+const columns = "id,name,sex,color,neutered,description,uploader,photos,created_at,album_key,neutered_at"
 
 func (s *Store) Get(ctx context.Context, id int64) (Cat, error) {
 	return scanCat(s.db.QueryRowContext(ctx, "SELECT "+columns+" FROM cats WHERE id=?", id))

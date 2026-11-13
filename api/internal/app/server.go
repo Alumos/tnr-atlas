@@ -173,7 +173,7 @@ func (s *Server) create(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	c := Cat{Name: r.FormValue("name"), Sex: r.FormValue("sex"), Color: r.FormValue("color"), Neutered: r.FormValue("neutered"), Description: r.FormValue("description"), Uploader: r.FormValue("uploader")}
+	c := Cat{Name: r.FormValue("name"), Sex: r.FormValue("sex"), Color: r.FormValue("color"), Neutered: r.FormValue("neutered"), NeuteredAt: r.FormValue("neuteredAt"), Description: r.FormValue("description"), Uploader: r.FormValue("uploader")}
 	if actor.Role == "volunteer" {
 		c.Uploader = actor.Name
 	}

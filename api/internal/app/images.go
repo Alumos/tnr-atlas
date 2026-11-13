@@ -24,6 +24,7 @@ import (
 
 type ImageHost struct {
 	BaseURL, Token string
+	PublicOrigin   string
 	FolderID       int64
 	Client         *http.Client
 }
@@ -108,14 +109,24 @@ func (h *ImageHost) UploadPhoto(ctx context.Context, data []byte, albumKey, catN
 	}
 	file := envelope.Data.Files[0]
 	p = Photo{ImageID: file.ID, URL: file.URL, Thumbnail: file.ThumbnailURL, Width: file.Width, Height: file.Height}
-	if !publicImageURL(p.URL) {
-		return p, fmt.Errorf("图床未返回有效的公开图片 URL")
+	publicURL, err := resolveImageURL(p.URL, h.PublicOrigin)
+	if err != nil {
+		return p, fmt.Errorf("图床主图地址无效：%w", err)
 	}
+	p.URL = publicURL
 	if h.FolderID > 0 && file.FolderID != h.FolderID {
 		return p, fmt.Errorf("图床未将图片归入指定目录，请检查官方版本和目录归属")
 	}
-	if file.MimeType != "image/webp" || !publicImageURL(p.Thumbnail) || p.Thumbnail == p.URL {
+	if file.MimeType != "image/webp" || p.Thumbnail == "" {
 		return p, fmt.Errorf("图床未返回 WebP 主图和独立缩略图，请在 oneimg 开启图片压缩、保存 WebP 和缩略图")
+	}
+	thumbnailURL, err := resolveImageURL(p.Thumbnail, h.PublicOrigin)
+	if err != nil {
+		return p, fmt.Errorf("图床缩略图地址无效：%w", err)
+	}
+	p.Thumbnail = thumbnailURL
+	if p.Thumbnail == p.URL {
+		return p, fmt.Errorf("图床未返回独立缩略图，请在 oneimg 开启缩略图")
 	}
 	if p.Width <= 0 || p.Height <= 0 {
 		return p, fmt.Errorf("图床未返回有效的图片尺寸")
@@ -125,6 +136,44 @@ func (h *ImageHost) UploadPhoto(ctx context.Context, data []byte, albumKey, catN
 func publicImageURL(raw string) bool {
 	u, err := url.Parse(raw)
 	return err == nil && u.Host != "" && validChoice(u.Scheme, "http", "https") && u.User == nil
+}
+
+// ONEIMG_BASE_URL is only for server-to-server uploads. Relative response paths
+// must use the explicitly configured public origin, never the internal host.
+func resolveImageURL(raw, publicOrigin string) (string, error) {
+	raw = strings.TrimSpace(raw)
+	u, err := url.Parse(raw)
+	if err != nil || raw == "" || strings.ContainsAny(raw, "\\\r\n\t") {
+		return "", fmt.Errorf("图床未返回有效的公开图片 URL")
+	}
+	if u.IsAbs() || u.Host != "" || strings.HasPrefix(raw, "//") {
+		if !publicImageURL(raw) {
+			return "", fmt.Errorf("图床未返回有效的公开图片 URL")
+		}
+		return raw, nil
+	}
+	if u.Path == "" || u.Fragment != "" {
+		return "", fmt.Errorf("图床未返回有效的图片路径")
+	}
+	if publicOrigin == "" {
+		return "", fmt.Errorf("图床返回相对路径，请在 TNR 容器配置 ONEIMG_PUBLIC_ORIGIN 为图床公开地址")
+	}
+	if err := ValidateImagePublicOrigin(publicOrigin); err != nil {
+		return "", err
+	}
+	base, _ := url.Parse(strings.TrimRight(publicOrigin, "/") + "/")
+	return base.ResolveReference(u).String(), nil
+}
+
+func ValidateImagePublicOrigin(raw string) error {
+	if raw == "" {
+		return nil // Existing hosts returning absolute URLs need no extra setting.
+	}
+	u, err := url.Parse(raw)
+	if err != nil || !publicImageURL(raw) || u.Hostname() == "" || (u.Path != "" && u.Path != "/") || u.RawQuery != "" || u.ForceQuery || u.Fragment != "" {
+		return fmt.Errorf("ONEIMG_PUBLIC_ORIGIN 必须是完整的 HTTP(S) 图床公开地址，不含子路径、查询参数或锚点")
+	}
+	return nil
 }
 
 func randomKey() string {
