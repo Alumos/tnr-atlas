@@ -1,0 +1,12 @@
+node_modules/
+web/dist/
+.env
+.env.*
+!.env.example
+.agent/
+*.tsbuildinfo
+*.db*
+api/server
+data/
+.DS_Store
+test-results/

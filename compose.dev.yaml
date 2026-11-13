@@ -1,0 +1,21 @@
+# 使用现成的工具镜像运行检查，不在本地构建任何应用镜像。
+services:
+  web-check:
+    image: node:24-alpine
+    working_dir: /workspace/web
+    volumes:
+      - ./web:/workspace/web
+      - web-dependencies:/workspace/web/node_modules
+    command: sh -c "npm ci && npm run check && npm run build && node scripts/precompress.mjs"
+  api-check:
+    image: golang:1.27-bookworm
+    working_dir: /workspace/api
+    volumes:
+      - ./api:/workspace/api
+      - go-modules:/go/pkg/mod
+      - go-cache:/root/.cache/go-build
+    command: sh -c "go test -race ./... && go vet ./... && go build ./cmd/server"
+volumes:
+  web-dependencies:
+  go-modules:
+  go-cache:

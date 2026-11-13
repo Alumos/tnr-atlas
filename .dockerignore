@@ -1,0 +1,12 @@
+.git
+.agent
+web/node_modules
+web/dist
+api/server
+data
+.env
+.env.*
+!.env.example
+**/*.tsbuildinfo
+test-results
+docs/screenshots
