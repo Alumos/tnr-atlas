@@ -73,13 +73,15 @@ jobs:
         run: |
           for arch in amd64 arm64; do
             container="tnr-smoke-${arch}"
+            platform_digest=$(docker buildx imagetools inspect "$IMAGE_REF" --raw | jq -er --arg arch "$arch" '.manifests[] | select(.platform.os == "linux" and .platform.architecture == $arch) | .digest')
+            platform_image="${IMAGE_REF%@*}@${platform_digest}"
             docker run -d --platform "linux/${arch}" --name "$container" \
               --read-only --cap-drop ALL --security-opt no-new-privileges:true \
               --tmpfs /tmp:size=64m \
               --mount "type=volume,src=${container}-data,dst=/app/data" \
               -e TNR_ACCESS_CODE=ci-only-access-code-123456 \
               -e TNR_ADMIN_PASSWORD=ci-only-admin-password-123456 \
-              -e PUBLIC_ORIGIN=http://localhost:8081 "$IMAGE_REF"
+              -e PUBLIC_ORIGIN=http://localhost:8081 "$platform_image"
             ready=false
             for attempt in $(seq 1 30); do
               if docker exec "$container" /app/tnr --healthcheck; then
