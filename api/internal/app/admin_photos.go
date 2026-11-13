@@ -37,8 +37,8 @@ func (s *Server) appendPhotos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	files := r.MultipartForm.File["photos"]
-	if len(files) == 0 || len(files)+len(cat.Photos) > 6 {
-		problem(w, 400, "每份相册最多 6 张照片，请先移除多余照片")
+	if len(files) == 0 {
+		problem(w, 400, "请选择至少 1 张照片")
 		return
 	}
 	var totalBytes int64
@@ -59,8 +59,8 @@ func (s *Server) appendPhotos(w http.ResponseWriter, r *http.Request) {
 		}
 		cfg, format, e := image.DecodeConfig(src)
 		src.Close()
-		if e != nil || !validChoice(format, "jpeg", "png", "webp") || cfg.Width <= 0 || cfg.Height <= 0 || int64(cfg.Width)*int64(cfg.Height) > 24000000 {
-			problem(w, 400, "图片需为 JPEG、PNG、WebP，且不超过 2400 万像素")
+		if e != nil || !validChoice(format, "jpeg", "png", "webp") || cfg.Width <= 0 || cfg.Height <= 0 || int64(cfg.Width)*int64(cfg.Height) > 32000000 {
+			problem(w, 400, "图片需为 JPEG、PNG、WebP，且不超过 3200 万像素")
 			return
 		}
 	}
@@ -101,10 +101,6 @@ func (s *Server) appendPhotos(w http.ResponseWriter, r *http.Request) {
 	latest, err := scanCat(tx.QueryRowContext(r.Context(), "SELECT "+columns+" FROM cats WHERE id=?", id))
 	if err != nil {
 		problem(w, 409, "档案已变更，请刷新重试")
-		return
-	}
-	if len(latest.Photos)+len(photos) > 6 {
-		problem(w, 409, "相册已变更，请刷新重试")
 		return
 	}
 	latest.Photos = append(latest.Photos, photos...)

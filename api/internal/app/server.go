@@ -182,8 +182,8 @@ func (s *Server) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	files := r.MultipartForm.File["photos"]
-	if len(files) < 1 || len(files) > 6 {
-		problem(w, 400, "相册需要 1–6 张照片")
+	if len(files) < 1 {
+		problem(w, 400, "相册至少需要 1 张照片")
 		return
 	}
 	// Validate every file header before making any remote write.
@@ -210,8 +210,8 @@ func (s *Server) create(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		cfg, format, err := image.DecodeConfig(bytes.NewReader(data))
-		if err != nil || !validChoice(format, "jpeg", "png", "webp") || cfg.Width <= 0 || cfg.Height <= 0 || int64(cfg.Width)*int64(cfg.Height) > 24000000 {
-			problem(w, 400, "照片需要为 JPEG、PNG 或 WebP，且不超过 2400 万像素")
+		if err != nil || !validChoice(format, "jpeg", "png", "webp") || cfg.Width <= 0 || cfg.Height <= 0 || int64(cfg.Width)*int64(cfg.Height) > 32000000 {
+			problem(w, 400, "照片需要为 JPEG、PNG 或 WebP，且不超过 3200 万像素")
 			return
 		}
 	}

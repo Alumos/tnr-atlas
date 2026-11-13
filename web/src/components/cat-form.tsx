@@ -37,7 +37,6 @@ export default function CatForm({ open, onOpenChange, onSaved }: Props) {
   useEffect(() => { if (!open) return; let active = true; setSessionLoading(true); api<{ authenticated: boolean; uploadsReady: boolean;role:string;name:string }>('/session').then(s => { if (active) { setAuthenticated(s.authenticated); setReady(s.uploadsReady);setRole(s.role);setIdentity(s.name); setError('') } }).catch(e => { if (active) setError(e.message) }).finally(() => { if (active) setSessionLoading(false) }); return () => { active = false } }, [open])
   function addFiles(incoming: File[]) {
     setError('')
-    if (files.length + incoming.length > 6) { setError('每份相册最多 6 张照片'); return }
     if (incoming.some(f => !['image/jpeg', 'image/png', 'image/webp'].includes(f.type) || f.size > 10 * 1024 * 1024)) { setError('请选择 10 MB 以内的 JPEG、PNG 或 WebP 照片'); return }
     if ([...files, ...incoming].reduce((n, f) => n + f.size, 0) > 50 * 1024 * 1024) { setError('相册总大小不能超过 50 MB'); return }
     setFiles([...files, ...incoming])
@@ -67,7 +66,7 @@ export default function CatForm({ open, onOpenChange, onSaved }: Props) {
         <Field data-invalid={invalid && !files.length}><FieldLabel htmlFor="photos">相册 *</FieldLabel><input ref={input} id="photos" className="sr-only" type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={e => { addFiles(Array.from(e.target.files || [])); e.target.value = '' }} />
           <button className="upload-zone" type="button" onClick={() => input.current?.click()} onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); addFiles(Array.from(e.dataTransfer.files)) }}><ImagePlus /><strong>点击选择，或拖入照片</strong><span>JPEG、PNG、WebP · 每张最多 10 MB</span></button>
           {files.length > 0 && <div className="photo-previews">{files.map((f, i) => <div key={`${f.name}-${i}`}><img src={previews[i]} alt={`待上传照片 ${i + 1}`} /><Button type="button" variant="secondary" size="icon" aria-label={`移除照片 ${i + 1}`} onClick={() => setFiles(files.filter((_, n) => n !== i))}><X /></Button></div>)}</div>}
-          <FieldDescription>已选 {files.length}/6 张。首张作为封面，照片会自动优化。</FieldDescription></Field>
+          <FieldDescription>已选 {files.length} 张，合计 {(files.reduce((n, f) => n + f.size, 0) / 1024 / 1024).toFixed(1)} / 50 MB。首张作为封面，照片会自动优化。</FieldDescription></Field>
         <Field><FieldLabel htmlFor="cat-description">补充描述 <span className="optional">选填</span></FieldLabel><Textarea id="cat-description" name="description" placeholder="它的性格、身体状况，或你想记录的小故事…" maxLength={2000} rows={3} /></Field>
         <Field><FieldLabel htmlFor="uploader">上传人 *</FieldLabel><Input id="uploader" name="uploader" placeholder="你的名字或志愿者昵称" maxLength={40} required autoComplete="nickname" defaultValue={role==='volunteer'?identity:''} readOnly={role==='volunteer'} /><FieldDescription>请使用昵称，上传人和描述会公开展示。</FieldDescription></Field>
         {error && <Alert variant="destructive" role="alert"><AlertTitle>暂时无法保存</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}

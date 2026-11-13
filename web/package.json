@@ -1,7 +1,7 @@
 {
   "name": "tnr-atlas-web",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "packageManager": "npm@11.20.0",
   "scripts": {

@@ -37,8 +37,8 @@ func imageFormat(data []byte) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("仅支持有效的 JPEG、PNG、WebP 图片")
 	}
-	if !validChoice(format, "jpeg", "png", "webp") || cfg.Width <= 0 || cfg.Height <= 0 || int64(cfg.Width)*int64(cfg.Height) > 24000000 {
-		return "", fmt.Errorf("图片尺寸不能超过 2400 万像素")
+	if !validChoice(format, "jpeg", "png", "webp") || cfg.Width <= 0 || cfg.Height <= 0 || int64(cfg.Width)*int64(cfg.Height) > 32000000 {
+		return "", fmt.Errorf("图片尺寸不能超过 3200 万像素")
 	}
 	return format, nil
 }

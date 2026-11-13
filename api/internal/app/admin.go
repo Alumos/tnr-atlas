@@ -235,8 +235,8 @@ func (s *Server) editCat(w http.ResponseWriter, r *http.Request) {
 		problem(w, 400, err.Error())
 		return
 	}
-	if len(c.Photos) < 1 || len(c.Photos) > 6 {
-		problem(w, 400, "相册需保留 1–6 张照片")
+	if len(c.Photos) < 1 {
+		problem(w, 400, "相册至少需保留 1 张照片")
 		return
 	}
 	tx, err := s.Store.db.BeginTx(r.Context(), nil)
