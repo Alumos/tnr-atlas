@@ -39,7 +39,7 @@
 
 ### v0.1.0 镜像地址
 
-首个版本号为 `v0.1.0`，正式发布后提供以下地址。默认使用 `latest`，后续更新无需填写提交编号；在 1Panel 重新拉取镜像并重新创建 TNR 容器即可。
+首个版本 **v0.1.0 已于 2026-11-14 发布**，提供以下地址。默认使用 `latest`，后续更新无需填写提交编号；在 1Panel 重新拉取镜像并重新创建 TNR 容器即可。
 
 | 用途 | 完整镜像地址 |
 | --- | --- |
@@ -54,7 +54,7 @@ docker pull ghcr.io/alumos/tnr-atlas:0.1.0
 docker pull onexru/oneimg-oneimg:latest
 ```
 
-版本发布记录见 [GitHub Releases](https://github.com/Alumos/tnr-atlas/releases)，构建与双架构运行结果见 [GitHub Actions](https://github.com/Alumos/tnr-atlas/actions)。当前公开包可匿名拉取；官方 oneimg 仍需独立完成真实上传验收。
+版本说明见 [v0.1.0 Release](https://github.com/Alumos/tnr-atlas/releases/tag/v0.1.0)，[本次 GitHub Actions](https://github.com/Alumos/tnr-atlas/actions/runs/43491838328) 的代码检查、双架构构建与运行检查均通过。匿名 GHCR 核验确认 `0.1.0` 与 `latest` 在发布时指向同一镜像，支持 AMD64/ARM64。此次版本摘要为 `sha256:9c1d0f14466281cd0d11014dff84c7302c5393c1e79b0f2969b1cfb195bd2675`，仅供追溯，编排继续使用 `latest` 即可。
 
 ### 后续发布规则
 

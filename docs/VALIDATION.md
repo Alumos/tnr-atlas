@@ -2,19 +2,21 @@
 
 本地核验时间：2026-11-14T02:00:00+08:00；发布核验日期：2026-11-14（Asia/Taipei）。项目仓库为 [Alumos/tnr-atlas](https://github.com/Alumos/tnr-atlas)。
 
-## 已完成的 GitHub Actions 发布验证
+## v0.1.0 GitHub Actions 发布验证
 
-[工作流 43482713322](https://github.com/Alumos/tnr-atlas/actions/runs/43482713322) 全部通过，对应应用提交 `e392172ae3a537324ea472d3d80041d8fd71e7c5`：
+[`v0.1.0` 标签工作流 43491838328](https://github.com/Alumos/tnr-atlas/actions/runs/43491838328) 全部通过，对应应用提交 `eb4b6f8453a6b49d44192cdf67df555933c1a430`：
 
 - Node 24 环境下的依赖安装、TypeScript、ESLint、前端生产构建和 gzip 预生成通过。
-- Go 1.27 环境下的 race 测试、`go vet` 和后端构建通过。
+- Go 1.27 环境下的 race 测试（含图片相对路径、绝育日期及旧数据库迁移）、`go vet` 和后端构建通过。
 - GitHub Runner 构建并推送 `linux/amd64`、`linux/arm64` 镜像；没有在本机或 1Panel 构建部署镜像。
-- 两种架构分别启动已发布的镜像，在只读根文件系统、非 root 用户、移除 capabilities 的条件下完成 SQLite 数据卷初始化、健康检查和页面 HTTP 访问。ARM64 运行使用 QEMU。
-- 使用匿名 GHCR 凭据读取公开镜像清单，确认两种架构均存在，固定标签与 `latest` 在核验时指向相同镜像摘要。
+- 两种架构分别启动已发布的镜像，在只读根文件系统、非 root 用户、移除 capabilities 的条件下完成 SQLite 数据卷初始化、健康检查和页面 HTTP 访问。ARM64 运行使用 QEMU；启动配置包含新变量 `ONEIMG_PUBLIC_ORIGIN`。
+- 使用匿名 GHCR 凭据读取公开镜像清单，确认两种架构均存在，`0.1.0`、`latest` 与该提交标签在核验时指向相同镜像摘要。
 
-发布地址：`ghcr.io/alumos/tnr-atlas:sha-e392172ae3a537324ea472d3d80041d8fd71e7c5`。
+默认发布地址：`ghcr.io/alumos/tnr-atlas:latest`；固定版本：`ghcr.io/alumos/tnr-atlas:0.1.0`。
 
-镜像摘要：`sha256:e2e401d8e4262a7b186bf99d43cb1e26e8b7bb2f59e6e3683b81278096c93788`。实际拉取命令和 1Panel 配置已更新到 [部署手册](DEPLOYMENT.md)。
+本次版本摘要：`sha256:9c1d0f14466281cd0d11014dff84c7302c5393c1e79b0f2969b1cfb195bd2675`。`latest` 会随后续发布变化，版本号和此次摘要用于追溯；部署无需填写提交编号。实际拉取命令和 1Panel 配置见 [部署手册](DEPLOYMENT.md)，版本说明见 [v0.1.0 Release](https://github.com/Alumos/tnr-atlas/releases/tag/v0.1.0)。
+
+此前未编号构建的验证结果由本次正式版本检查取代。真实官方 oneimg 的 WebP 转换已由部署用户反馈成功，修复后的完整生产录入仍需用户在升级后验收；本次浏览器写入仅使用本地接口模拟器。
 
 ## 代码检查
 

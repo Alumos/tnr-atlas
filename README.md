@@ -42,7 +42,7 @@ NTR/
 
 项目仓库：[Alumos/tnr-atlas](https://github.com/Alumos/tnr-atlas)。推送代码后，Actions 自动执行检查并发布 `ghcr.io/alumos/tnr-atlas`，支持 `linux/amd64` 与 `linux/arm64`。
 
-首个版本为 **v0.1.0**，发布地址见 [GitHub Releases](https://github.com/Alumos/tnr-atlas/releases)。`.env.example` 默认使用：
+首个版本 **[v0.1.0](https://github.com/Alumos/tnr-atlas/releases/tag/v0.1.0)** 已发布，[代码检查及双架构运行检查均通过](https://github.com/Alumos/tnr-atlas/actions/runs/43491838328)。`.env.example` 默认使用：
 
 ```text
 ghcr.io/alumos/tnr-atlas:latest
