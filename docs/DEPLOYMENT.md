@@ -33,6 +33,7 @@
 1. `npm ci`、TypeScript 和 ESLint 检查、前端生产构建。
 2. Go race 测试、`go vet`、后端构建。
 3. 检查通过后，GitHub 构建 `linux/amd64` 和 `linux/arm64` 的 **一个 TNR 镜像**并推送到 GHCR。
+4. 在 GitHub Runner 上分别启动两种架构的镜像，检查只读文件系统、非 root 用户、数据卷写入、健康检查和页面访问。
 
 触发规则：`main` 分支推送、`v*` 标签、手工运行。PR 仅检查，不推送镜像。镜像地址由仓库名自动生成并转为小写；不会在你的 Mac 或 1Panel 上构建镜像。
 

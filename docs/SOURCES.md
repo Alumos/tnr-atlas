@@ -17,6 +17,10 @@
 
 官方镜像 `latest` 是可变标签，不能仅凭仓库源码推断它永远与上述提交完全一致。首次部署需按部署文档完成一只测试猫的实际上传验收，再固定使用的官方镜像版本或 digest。
 
+## GitHub Actions 运行时
+
+2026-11-14 核对各 Action 官方发布和 `action.yml`，工作流使用 Node 24 运行时，固定版本见 `.github/workflows/ci.yml`。主要来源：[checkout v7.0.1](https://github.com/actions/checkout/releases/tag/v7.0.1)（2026-07-20）、[setup-node v7.1.0](https://github.com/actions/setup-node/releases/tag/v7.1.0)（2026-10-08）、[setup-go v7.0.0](https://github.com/actions/setup-go/releases/tag/v7.0.0)（2026-07-16）、[build-push-action v7.4.0](https://github.com/docker/build-push-action/releases/tag/v7.4.0)（2026-09-15）。检查和镜像构建固定使用 `ubuntu-24.04` Runner，避免 `ubuntu-latest` 自动迁移带来的环境变化。
+
 ## 前端与图片处理
 
 - [shadcn/ui 官方文档](https://ui.shadcn.com/docs)：通过官方 CLI 获取组件，选择 Radix / new-york / neutral，检查组合和无障碍标题。

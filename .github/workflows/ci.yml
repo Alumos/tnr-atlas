@@ -12,17 +12,17 @@ concurrency:
   cancel-in-progress: true
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
         with:
           node-version: '24'
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci && npm run check && npm run build && node scripts/precompress.mjs
         working-directory: web
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7.0.0
         with:
           go-version: '1.27'
           cache-dependency-path: api/go.sum
@@ -31,25 +31,25 @@ jobs:
   image:
     if: github.event_name != 'pull_request'
     needs: check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
       - name: Lowercase image address
         id: image
         env:
           REPOSITORY: ${{ github.repository }}
         run: echo "name=ghcr.io/${REPOSITORY,,}" >> "$GITHUB_OUTPUT"
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - uses: docker/setup-qemu-action@v4.4.0
+      - uses: docker/setup-buildx-action@v4.4.1
+      - uses: docker/login-action@v4.8.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/metadata-action@v5
+      - uses: docker/metadata-action@v6.2.0
         id: meta
         with:
           images: ${{ steps.image.outputs.name }}
@@ -57,7 +57,8 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=sha,prefix=sha-,format=long
             type=semver,pattern={{version}}
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7.4.0
+        id: build
         with:
           context: .
           platforms: linux/amd64,linux/arm64
@@ -66,3 +67,33 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Smoke test published images
+        env:
+          IMAGE_REF: ${{ steps.image.outputs.name }}@${{ steps.build.outputs.digest }}
+        run: |
+          for arch in amd64 arm64; do
+            container="tnr-smoke-${arch}"
+            docker run -d --platform "linux/${arch}" --name "$container" \
+              --read-only --cap-drop ALL --security-opt no-new-privileges:true \
+              --tmpfs /tmp:size=64m \
+              --mount "type=volume,src=${container}-data,dst=/app/data" \
+              -e TNR_ACCESS_CODE=ci-only-access-code-123456 \
+              -e TNR_ADMIN_PASSWORD=ci-only-admin-password-123456 \
+              -e PUBLIC_ORIGIN=http://localhost:8081 "$IMAGE_REF"
+            ready=false
+            for attempt in $(seq 1 30); do
+              if docker exec "$container" /app/tnr --healthcheck; then
+                ready=true
+                break
+              fi
+              sleep 2
+            done
+            if [ "$ready" != true ]; then
+              docker logs "$container"
+              exit 1
+            fi
+            docker exec "$container" wget -qO- http://127.0.0.1:8081/ > "/tmp/tnr-smoke-${arch}.html"
+            test -s "/tmp/tnr-smoke-${arch}.html"
+            docker rm -f "$container"
+            docker volume rm "${container}-data"
+          done
